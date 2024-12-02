@@ -1,42 +1,63 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 17 20:11:54 2020
+Created on Mon Dec 02 13:31:54 2024
 
-@author: mhabayeb
+@author: Aytekin
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-import neurolab as nl
+import tensorflow as tf
 import os
-path = "C:/Users/mhabayeb/Documents/COMP237_Data/"
+
+Sequential = tf.keras.models.Sequential
+Dense = tf.keras.layers.Dense
+SGD = tf.keras.optimizers.SGD
+
 filename = 'data_simple_nn.txt'
-fullpath = os.path.join(path,filename) 
-text = np.loadtxt(fullpath)
+path = os.path.join(os.path.dirname(__file__),filename) 
+text = np.loadtxt(path)
+print(text)
+
 # separate the data
 data = text[:, 0:2]
 labels = text[:, 2:]
-#Plot the data
+
+# Plot the data
 # Plot input data
 plt.figure()
 plt.scatter(data[:,0], data[:,1])
 plt.xlabel('Dimension 1')
 plt.ylabel('Dimension 2')
 plt.title('Input data')
-# Minimum and maximum values for each dimension
-dim1_min, dim1_max = data[:,0].min(), data[:,0].max()
-dim2_min, dim2_max = data[:,1].min(), data[:,1].max()
-# Define the number of neurons in the output layer shape[0] gives number of rows , shape[1] gives number of columns
-num_output = labels.shape[1]
-# Define a single-layer neural network
-dim1 = [dim1_min, dim1_max]
-dim2 = [dim2_min, dim2_max]
-nn = nl.net.newp([dim1, dim2], num_output)
+
+# Normalize data to [0, 1]
+data_min = data.min(axis=0)  # Minimum of each feature (column)
+data_max = data.max(axis=0)  # Maximum of each feature (column)
+
+print("data_min:", data_min)
+print("data_max:", data_max)
+
+data_normalized = (data - data_min) / (data_max - data_min)  # Apply Min-Max Scaling
+print("data_normalized:")
+print(data_normalized)
+
+
+num_output = labels.shape[1] # Number of output neurons
+model = Sequential()
+# Add a single layer into the model
+model.add(Dense(units=num_output, input_dim=2, activation='sigmoid'))
+
+# Compile the model
+model.compile(optimizer=SGD(learning_rate=0.003), loss='mean_squared_error', metrics=['accuracy'])
+
 # Train the neural network
-error_progress = nn.train(data, labels, epochs=1000, show=20, lr=0.003)
+history = model.fit(data_normalized, labels, epochs=1000, batch_size=data.shape[0], verbose=1)
+
+
  #Plot the training progress
 plt.figure()
-plt.plot(error_progress)
+plt.plot(history.history['loss'])
 plt.xlabel('Number of epochs')
 plt.ylabel('Training error')
 plt.title('Training error progress')
@@ -45,6 +66,8 @@ plt.show()
 
 # Run the classifier on test datapoints
 print('\nTest results:')
-data_test = [[0.4, 4.3], [4.4, 0.6], [4.7, 8.1], [0.9,7.4],[7,4],[4,7],[7.2,4.1]]
-for item in data_test:
-    print(item, '-->', nn.sim([item])[0])
+data_test = np.array([[0.4, 4.3], [4.4, 0.6], [4.7, 8.1], [0.9,7.4],[7,4],[4,7],[7.2,4.1]])
+predictions = model.predict(data_test)
+
+for item, prediction in zip(data_test, predictions):
+    print(f"{item} --> {np.round(prediction, decimals=2)}")

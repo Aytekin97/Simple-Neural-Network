@@ -24,7 +24,6 @@ Load the data using the numpy loadtxt function
 text = np.loadtxt(path)
 print(text)
 
-
 # Separate the data (x1, x2) from the labels
 data = text[:, :2]  # Select columns 0 and 1 (features)
 labels = text[:, 2]  # Select column 2 (labels)
@@ -35,7 +34,6 @@ print(data)
 print("Labels:")
 print(labels)
 
-
 # Plot input data
 plt.figure()
 plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis')
@@ -43,7 +41,6 @@ plt.xlabel('Dimension 1')
 plt.ylabel('Dimension 2')
 plt.title('Input data')
 plt.show()
-
 
 
 # Define a TensorFlow Keras model (Perceptron)
